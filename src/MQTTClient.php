@@ -700,6 +700,12 @@ class MQTTClient implements ClientContract
                     break;
                 }
             }
+
+            // Exit for real the loop after one round if limit -1
+            if ($queueWaitLimit == -1) {
+                $this->logger->debug('Force-exiting the main loop after one go');
+                break;
+            }
         }
     }
 
@@ -1396,6 +1402,16 @@ class MQTTClient implements ClientContract
     public function hasCertificateAuthorityFile(): bool
     {
         return $this->getCertificateAuthorityFile() !== null;
+    }
+
+    /**
+     * Retrieves the raw socket internal context.
+     *
+     * @return resource
+     */
+    public function getSocket()
+    {
+        return $this->socket;
     }
 
     /**

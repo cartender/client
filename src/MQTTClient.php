@@ -143,12 +143,12 @@ class MQTTClient implements ClientContract
      */
     protected function establishSocketConnection(): void
     {
-        if ($this->hasCertificateAuthorityFile()) {
+        if ($this->settings->wantsTls($this->hasCertificateAuthorityFile())) {
             $this->logger->info(sprintf('Using certificate authority file [%s] to verify peer name.', $this->caFile));
 
             $socketContext = stream_context_create([
                 'ssl' => [
-                'verify_peer_name' => true,
+                    'verify_peer_name' => $this->settings->requiresTlsPeerValidation(),
                     'cafile' => $this->getCertificateAuthorityFile(),
                 ],
             ]);

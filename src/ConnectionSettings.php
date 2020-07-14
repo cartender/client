@@ -30,6 +30,12 @@ class ConnectionSettings
     /** @var string */
     private $lastWillMessage;
 
+    /** @var ?bool */
+    private $tlsEnabled;
+
+    /** @var bool */
+    private $tlsVerifyPeer;
+
     /**
      * Constructs a new settings object.
      * 
@@ -50,7 +56,9 @@ class ConnectionSettings
         int $keepAlive = 10,
         int $resendTimeout = 10,
         string $lastWillTopic = null,
-        string $lastWillMessage = null
+        string $lastWillMessage = null,
+        bool $tlsEnabled = null,
+        bool $tlsVerifyPeer = true
     )
     {
         $this->qualityOfService = $qualityOfService;
@@ -61,6 +69,8 @@ class ConnectionSettings
         $this->resendTimeout    = $resendTimeout;
         $this->lastWillTopic    = $lastWillTopic;
         $this->lastWillMessage  = $lastWillMessage;
+        $this->tlsEnabled       = $tlsEnabled;
+        $this->tlsVerifyPeer    = $tlsVerifyPeer;
     }
 
     /**
@@ -163,5 +173,26 @@ class ConnectionSettings
     public function hasLastWill(): bool
     {
         return $this->lastWillTopic !== null && $this->lastWillMessage !== null;
+    }
+
+    /**
+     * Determines whether the client wants to enable TLS
+     *
+     * @param bool $hasCAfile
+     * @return bool
+     */
+    public function wantsTls($hasCAfile = false): bool
+    {
+        return ($this->tlsEnabled ?? $hasCAfile);
+    }
+
+    /**
+     * Determines whether the TLS peer certificate validation must occur
+     *
+     * @return bool
+     */
+    public function requiresTlsPeerValidation(): bool
+    {
+        return $this->tlsVerifyPeer;
     }
 }

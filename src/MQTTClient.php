@@ -143,15 +143,20 @@ class MQTTClient implements ClientContract
      */
     protected function establishSocketConnection(): void
     {
-        if ($this->settings->wantsTls($this->hasCertificateAuthorityFile())) {
-            $this->logger->info(sprintf('Using certificate authority file [%s] to verify peer name.', $this->caFile));
-
-            $socketContext = stream_context_create([
+        if ($this->settings->wantsTls() || $this->hasCertificateAuthorityFile()) {
+            $socketContextOptions = [
                 'ssl' => [
-                    'verify_peer_name' => $this->settings->requiresTlsPeerValidation(),
-                    'cafile' => $this->getCertificateAuthorityFile(),
+                    'verify_peer' => $this->settings->requiresTlsPeerValidation(),
                 ],
-            ]);
+            ];
+
+            /* setting null is not an option, the key must be only present if file exists */
+            if ($this->hasCertificateAuthorityFile()) {
+                $socketContextOptions['ssl']['cafile'] = $this->getCertificateAuthorityFile();
+            }
+
+            $this->logger->info(sprintf('Using certificate authority file [%s] to verify peer name.', $this->caFile));
+            $socketContext    = stream_context_create($socketContextOptions);
             $connectionString = 'tls://' . $this->getHost() . ':' . $this->getPort();
             $this->socket     = stream_socket_client($connectionString, $errorCode, $errorMessage, 60, STREAM_CLIENT_CONNECT, $socketContext);
         } else {
@@ -1416,6 +1421,7 @@ class MQTTClient implements ClientContract
 
     /**
      * Creates a string which is prefixed with its own length as bytes.
+     *
      * This means a string like 'hello world' will become
      *
      *   \x00\x0bhello world
@@ -1473,7 +1479,7 @@ class MQTTClient implements ClientContract
         $limit = min(strlen($buffer), $limit);
 
         $result = substr($buffer, $limit * (-1));
-        $buffer = substr($buffer, 0 ,$limit * (-1));
+        $buffer = substr($buffer, 0, $limit * (-1));
 
         return $result;
     }

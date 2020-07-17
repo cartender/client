@@ -178,12 +178,11 @@ class ConnectionSettings
     /**
      * Determines whether the client wants to enable TLS
      *
-     * @param bool $hasCAfile
      * @return bool
      */
-    public function wantsTls($hasCAfile = false): bool
+    public function wantsTls(): bool
     {
-        return ($this->tlsEnabled ?? $hasCAfile);
+        return $this->tlsEnabled;
     }
 
     /**

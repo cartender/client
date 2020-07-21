@@ -1097,6 +1097,7 @@ class MQTTClient implements ClientContract
                 call_user_func($subscriber->getCallback(), $topic, $message);
             } catch (\Throwable $e) {
                 // We ignore errors produced by custom callbacks.
+                $this->logger->error('!!DELIVERY CALLBACK EXCEPTION!! ' . (string) $e);
             }
         }
     }

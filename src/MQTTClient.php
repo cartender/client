@@ -246,34 +246,46 @@ class MQTTClient implements ClientContract
             // read and process the acknowledgement
             $acknowledgement = $this->readFromSocket(4);
             if (ord($acknowledgement[0]) >> 4 === 2) {
-                switch ($acknowledgement[3]) {
-                    case chr(0):
+                switch (ord($acknowledgement[3])) {
+                    case 0:
                         $this->logger->info(sprintf('Connection with MQTT broker at [%s:%s] established successfully.', $this->host, $this->port));
                         break;
-                    case chr(1):
+                    case 1:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] does not support MQTT v3.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_PROTOCOL_VERSION,
-                            'The selected MQTT broker does not support MQTT v3.'
+                            'Connection Refused: Unsupported protocol version'
                         );
-                    case chr(2):
+                    case 2:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] rejected the sent identifier.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_IDENTIFIER_REJECTED,
-                            'The selected MQTT broker rejected the sent identifier.'
+                            'Connection Refused: Client identifier rejected'
                         );
-                    case chr(3):
+                    case 3:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] is currently unavailable.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_BROKER_UNAVAILABLE,
-                            'The selected MQTT broker is currently unavailable.'
+                            'Connection Refused: Service currently not available'
+                        );
+                    case 4:
+                        $this->logger->error(sprintf('The MQTT broker at [%s:%s] bad user or password.', $this->host, $this->port));
+                        throw new ConnectingToBrokerFailedException(
+                            self::EXCEPTION_CONNECTION_IDENTIFIER_REJECTED,
+                            'Connection Refused: Bad username or password'
+                        );
+                    case 5:
+                        $this->logger->error(sprintf('The MQTT broker at [%s:%s] denied our connection.', $this->host, $this->port));
+                        throw new ConnectingToBrokerFailedException(
+                            self::EXCEPTION_CONNECTION_IDENTIFIER_REJECTED,
+                            'Connection Refused: Not authorized'
                         );
                     default:
                         $this->logger->error(sprintf(
-                            'The MQTT broker at [%s:%s] responded with an invalid error code [%s].',
+                            'The MQTT broker at [%s:%s] responded with an invalid error code [0x%02x].',
                             $this->host,
                             $this->port,
-                            $acknowledgement[3]
+                            ord($acknowledgement[3])
                         ));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_FAILED,

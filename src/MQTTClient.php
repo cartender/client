@@ -58,7 +58,7 @@ class MQTTClient implements ClientContract
     private $caFile;
 
     /** @var resource|null */
-    private $socket;
+    protected $socket;
 
     /** @var float */
     private $lastPingAt;

@@ -1,5 +1,5 @@
 {
-    "name": "php-mqtt/client",
+    "name": "cartender/php-mqtt-client",
     "description": "An MQTT client written in and for PHP.",
     "type": "library",
     "keywords": [
@@ -14,6 +14,11 @@
             "name": "Namoshek",
             "email": "namoshek@gmx.at",
             "role": "developer"
+        },
+        {
+            "name": "Giovanni Giacobbi",
+            "email": "giovanni@giacobbi.net",
+            "role": "maintainer"
         }
     ],
     "autoload": {

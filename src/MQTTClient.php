@@ -201,7 +201,7 @@ class MQTTClient implements ClientContract
             // errorCode is a POSIX socket error (0-255)
             throw new ConnectingToBrokerFailedException(
                 self::EXCEPTION_CONNECTION_SOCKET_ERROR,
-                sprintf('Socket error [%d]: %s', $errorCode, $errorMessage),
+                "Socket error [$errorCode]: " . $errorMessage,
                 $errorMessage,
                 (string) $errorCode
             );
@@ -232,9 +232,10 @@ class MQTTClient implements ClientContract
                     $tlsErrorMessage,
                     $tlsErrorCode
                 ));
+
                 throw new ConnectingToBrokerFailedException(
                     self::EXCEPTION_CONNECTION_TLS_ERROR,
-                    sprintf('TLS error [%s]: %s', $tlsErrorCode, $tlsErrorMessage),
+                    "TLS error [$tlsErrorCode]: " . $tlsErrorMessage,
                     $tlsErrorMessage,
                     $tlsErrorCode
                 );
@@ -253,10 +254,10 @@ class MQTTClient implements ClientContract
      * @param array       $phpError
      * @param string|null $tlsErrorCode
      * @param string|null $tlsErrorMessage
-     * @return void
      */
-    private function parseTlsErrorMessage($phpError, ?string &$tlsErrorCode = null, ?string &$tlsErrorMessage = null): void
+    private function parseTlsErrorMessage($phpError, &$tlsErrorCode, &$tlsErrorMessage)
     {
+        // FIXME: still unhappy with those unknowns... should we just return null code?
         if (!$phpError || !isset($phpError['message'])) {
             $tlsErrorCode    = "UNKNOWN:1";
             $tlsErrorMessage = "Unknown error";
@@ -351,31 +352,31 @@ class MQTTClient implements ClientContract
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] does not support MQTT v3.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_PROTOCOL_VERSION,
-                            'Connection refused: Protocol version 3.1 is not supported.'
+                            'Connection Refused: Protocol version 3.1 is not supported'
                         );
                     case 2:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] rejected the sent client identifier.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_IDENTIFIER_REJECTED,
-                            'Connection refused: Client identifier rejected.'
+                            'Connection Refused: Client identifier rejected'
                         );
                     case 3:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] is currently unavailable.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_BROKER_UNAVAILABLE,
-                            'Connection refused: Service currently not available.'
+                            'Connection Refused: Service currently not available'
                         );
                     case 4:
-                        $this->logger->error(sprintf('The MQTT broker at [%s:%s] reported bad username or password.', $this->host, $this->port));
+                        $this->logger->error(sprintf('The MQTT broker at [%s:%s] bad user or password.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_BAD_LOGIN,
-                            'Connection refused: Bad username or password.'
+                            'Connection Refused: Bad username or password'
                         );
                     case 5:
                         $this->logger->error(sprintf('The MQTT broker at [%s:%s] denied our connection.', $this->host, $this->port));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_NOT_AUTHORIZED,
-                            'Connection refused: Not authorized.'
+                            'Connection Refused: Not authorized'
                         );
                     default:
                         $this->logger->error(sprintf(
@@ -386,7 +387,7 @@ class MQTTClient implements ClientContract
                         ));
                         throw new ConnectingToBrokerFailedException(
                             self::EXCEPTION_CONNECTION_UNKNOWN_ERROR,
-                            sprintf('Connection Refused: Unknown reason 0x%02x', ord($acknowledgement[3]))
+                            'Connection Refused: Unknown reason ' . ord($acknowledgement[3])
                         );
                 }
             } else {
@@ -395,7 +396,7 @@ class MQTTClient implements ClientContract
                 $this->logger->error(sprintf('The MQTT broker at [%s:%s] closed the connection without reason.', $this->host, $this->port));
                 throw new ConnectingToBrokerFailedException(
                     self::EXCEPTION_CONNECTION_FAILED,
-                    'Connection closed without reason.'
+                    'Connection closed without reason'
                 );
             }
         } catch (DataTransferException $e) {
@@ -481,6 +482,8 @@ class MQTTClient implements ClientContract
 
         if ($this->socket !== null && is_resource($this->socket)) {
             stream_socket_shutdown($this->socket, STREAM_SHUT_WR);
+            // FIXME: should we wait for socket queue to be flushed? Need to investigate this
+            // $this->closeSocket();
         }
     }
 
@@ -1523,7 +1526,7 @@ class MQTTClient implements ClientContract
             } else {
                 $phpError = error_get_last();
                 $this->logger->debug('Closing socket connection failed: {error}', [
-                    'error' => $phpError ? $phpError['message'] : 'undefined',
+                    'error' => ($phpError ? $phpError['message'] : 'undefined')
                 ]);
             }
 

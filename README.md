@@ -80,8 +80,8 @@ Lastly, a logger can be passed as sixth parameter. If none is given, a null logg
 Example:
 ```php
 $mqtt = new \PhpMqtt\Client\MQTTClient(
-    $server, 
-    $port, 
+    $server,
+    $port,
     $clientId,
     '/path/to/ca/file',
     new \PhpMqtt\Client\Repositories\MemoryRepository(),
@@ -155,7 +155,7 @@ public function __construct(
 - Persistence Drivers
   - [x] In-Memory Driver
   - [ ] Redis Driver
-  
+
 ## Limitations
 
 - There is no guarantee that message identifiers are not used twice (while the first usage is still pending).

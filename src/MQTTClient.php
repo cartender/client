@@ -1238,7 +1238,7 @@ class MQTTClient implements ClientContract
             try {
                 call_user_func($subscriber->getCallback(), $topic, $message, $retained);
             } catch (\Throwable $e) {
-                // We ignore errors produced by custom callbacks.
+                trigger_error("During MQTT callback: Uncaught " . (string) $e, E_USER_WARNING);
             }
         }
     }
